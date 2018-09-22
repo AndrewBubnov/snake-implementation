@@ -1,0 +1,61 @@
+html, body{
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+}
+.container{
+    width: 600px;
+    height: 600px;
+    outline: 5px solid bisque;
+    display: flex;
+    flex-wrap: wrap;
+}
+.cell{
+    width: 30px;
+    height: 30px;
+    border: 1px dotted #FFE4B5;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.head{
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background-color: lightskyblue;
+}
+.snake{
+    width: 25px;
+    height: 25px;
+    background-color: lightskyblue;
+}
+.apple{
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background-color: #008000;
+}
+.stone{
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background-color: #ff0000;
+}
+.stop{
+    width: 100px;
+    height: 30px;
+    border: 2px solid green;
+    color: green;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30px;
+    cursor: pointer;
+}
