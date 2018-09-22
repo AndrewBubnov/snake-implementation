@@ -49,14 +49,16 @@ function hasKey(set, key) {
 }
 
 
-function bfs(start,finish, stone) {
+function bfs(start,finish, stones) {
     let visited = new Set();
     let nodeStory = new Map();
     let steps = [];
     let queue = [];
     let current = start;
     queue.push(start);
-    visited.add(stone);
+    for(let stone of stones) {
+        visited.add(stone);
+    }
     visited.add(start);
     while(queue.length > 0){
         current = queue.shift();
@@ -137,10 +139,15 @@ function main() {
     let appleX = Math.floor(Math.random()*20) + 1;
     let appleY = Math.floor(Math.random()*20) + 1;
     $('<div>').addClass('apple').appendTo($('#' + appleX + '_' + appleY));
-    let stoneX = Math.floor(Math.random()*20) + 1;
-    let stoneY = Math.floor(Math.random()*20) + 1;
-    $('<div>').addClass('stone').appendTo($('#' + stoneX + '_' + stoneY));
-    move(currentHead, new Node(appleX, appleY), new Node(stoneX, stoneY));
+    let stones = [];
+    for (let i = 0; i < 10; i++) {
+        let stoneX = Math.floor(Math.random()*20) + 1;
+        let stoneY = Math.floor(Math.random()*20) + 1;
+        $('<div>').addClass('stone').appendTo($('#' + stoneX + '_' + stoneY));
+        stones.push(new Node(stoneX, stoneY));
+    }
+
+    move(currentHead, new Node(appleX, appleY), stones);
 }
 $('.stop').on('click', function () {
     clearInterval(interval);
