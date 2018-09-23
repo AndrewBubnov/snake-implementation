@@ -102,14 +102,24 @@ function move(start, finish, stone) {
         interval = setInterval(function () {
             let temp = [start.x, start.y];
             moves.push(temp);
-            if (moves.length > 100) {
-                moves = moves.slice(50, 102);
-                console.log(moves.length);
+            if (moves.length > 200) {
+                moves = moves.slice(100, 202);
             }
             let nextStep = bfs(start, finish, stone)[0];
+
+            let closed = snakeBody.some(function (element) {
+                return nextStep.x === element[0] && nextStep.y === element[1];
+            });
+
+            if (closed){
+                for (let j = 0; j < snakeBody.length; j++) {
+                    stone.push(new Node(snakeBody[j][0], snakeBody[j][1]));
+                }
+                nextStep = bfs(start, finish, stone)[0];
+            }
+
+
             $('.head').appendTo('#' + nextStep.x + '_' + nextStep.y);
-
-
             if (snakeBody.length > 0){
                 for (let i = 0; i < snakeBody.length; i++) {
                     snakeBody[i][0] = moves[moves.length - (i + 1)][0];
@@ -129,24 +139,36 @@ function move(start, finish, stone) {
                 $('<div>').addClass('snake').attr('id', snakeLength).appendTo($('#' + bodyX + '_' + bodyY));
                 snakeLength++;
                 snakeBody.push([bodyX, bodyY]);
+
                 main();
             }
-     }, 300);
+     }, 200);
 
+}
+function restrictedPlace(x, y, start) {
+    return snakeBody.some(function (element) {
+        return element[0] === x && element[1] === y;
+    });
 }
 
 function main() {
-    let appleX = Math.floor(Math.random()*20) + 1;
-    let appleY = Math.floor(Math.random()*20) + 1;
+    let appleX;
+    let appleY;
+    while(true) {
+        appleX = Math.floor(Math.random() * 20) + 1;
+        appleY = Math.floor(Math.random() * 20) + 1;
+        if (!restrictedPlace(appleX, appleY)) break;
+    }
     $('<div>').addClass('apple').appendTo($('#' + appleX + '_' + appleY));
     let stones = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 3; i++) {
         let stoneX = Math.floor(Math.random()*20) + 1;
         let stoneY = Math.floor(Math.random()*20) + 1;
-        $('<div>').addClass('stone').appendTo($('#' + stoneX + '_' + stoneY));
-        stones.push(new Node(stoneX, stoneY));
+        if (stoneX !== appleX && stoneY !== appleY && !restrictedPlace(stoneX, stoneY) && !stones.includes(new Node(stoneX, stoneY))) {
+            $('<div>').addClass('stone').appendTo($('#' + stoneX + '_' + stoneY));
+            stones.push(new Node(stoneX, stoneY));
+        }
     }
-
     move(currentHead, new Node(appleX, appleY), stones);
 }
 $('.stop').on('click', function () {
