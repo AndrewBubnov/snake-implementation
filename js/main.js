@@ -112,7 +112,8 @@ function move(start, finish, stone) {
             });
 
             if (closed){
-                for (let j = 0; j < snakeBody.length; j++) {
+                let len = snakeBody.length > 1 ? snakeBody.length - 1 : snakeBody.length;
+                for (let j = 0; j < len; j++) {
                     stone.push(new Node(snakeBody[j][0], snakeBody[j][1]));
                 }
                 nextStep = bfs(start, finish, stone)[0];
@@ -140,7 +141,7 @@ function move(start, finish, stone) {
                 snakeLength++;
                 snakeBody.push([bodyX, bodyY]);
 
-                main();
+                main(start);
             }
      }, 200);
 
@@ -148,28 +149,30 @@ function move(start, finish, stone) {
 function restrictedPlace(x, y, start) {
     return snakeBody.some(function (element) {
         return element[0] === x && element[1] === y;
-    });
+    }) || (start.x === x && start.y === y);
 }
 
-function main() {
+function main(start) {
+    if (start === undefined) start = currentHead;
     let appleX;
     let appleY;
     while(true) {
         appleX = Math.floor(Math.random() * 20) + 1;
         appleY = Math.floor(Math.random() * 20) + 1;
-        if (!restrictedPlace(appleX, appleY)) break;
+        if (!restrictedPlace(appleX, appleY, start)) break;
     }
     $('<div>').addClass('apple').appendTo($('#' + appleX + '_' + appleY));
-    let stones = [];
-    for (let i = 0; i < 3; i++) {
+    let stoneSet = new Set();
+    while (true) {
         let stoneX = Math.floor(Math.random()*20) + 1;
         let stoneY = Math.floor(Math.random()*20) + 1;
-        if (stoneX !== appleX && stoneY !== appleY && !restrictedPlace(stoneX, stoneY) && !stones.includes(new Node(stoneX, stoneY))) {
+        if (stoneX !== appleX && stoneY !== appleY && !restrictedPlace(stoneX, stoneY, start)) {
             $('<div>').addClass('stone').appendTo($('#' + stoneX + '_' + stoneY));
-            stones.push(new Node(stoneX, stoneY));
+            stoneSet.add(new Node(stoneX, stoneY));
         }
+        if (stoneSet.size === 3) break;
     }
-    move(currentHead, new Node(appleX, appleY), stones);
+    move(currentHead, new Node(appleX, appleY), Array.from(stoneSet));
 }
 $('.stop').on('click', function () {
     clearInterval(interval);
