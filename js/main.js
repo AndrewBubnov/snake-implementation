@@ -7,24 +7,23 @@ function Node(x,y) {
        let newX;
        let newY;
        let nodesArray = [];
-        newX = x - 1;
-        if (isAllowed(newX)) nodesArray.push(new Node(newX, y));
-        newX = x + 1;
-        if (isAllowed(newX)) nodesArray.push(new Node(newX, y));
-        newY = y - 1;
-        if (isAllowed(newY)) nodesArray.push(new Node(x, newY));
-        newY = y + 1;
-        if (isAllowed(newY)) nodesArray.push(new Node(x, newY));
+        newX = this.x - 1;
+        if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+        newX = this.x + 1;
+        if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+        newY = this.y - 1;
+        if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+        newY = this.y + 1;
+        if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
         return nodesArray;
     };
     this.equals = function (object) {
         return (this.x === object.x && this.y === object.y);
-    };
-    // this.toString = function () {
-    //     return this.x + " ; " + this.y;
-    // };
+    }
 }
-
+Node.prototype.toString = function () {
+        return this.x + " ; " + this.y;
+    };
 
 
 function isAllowed(n) {
@@ -48,7 +47,7 @@ function hasKey(set, key) {
     return false;
 }
 
-
+let stopBody = false;
 function bfs(start,finish, stones) {
     let visited = new Set();
     let nodeStory = new Map();
@@ -73,6 +72,11 @@ function bfs(start,finish, stones) {
                 }
             }
         }
+    }
+    if (!current.equals(finish)) {
+        stopBody = true;
+        steps.push(new Node(-1, -1));
+        return steps;
     }
     let node = finish;
     while(!node.equals(start)){
@@ -107,6 +111,46 @@ function move(start, finish, stone) {
             }
             let nextStep = bfs(start, finish, stone)[0];
 
+
+
+//**********************************************************************************************
+
+if (nextStep.equals(new Node(-1, -1))){
+    moves.splice(-1, 1);
+    start = new Node(moves[moves.length - 1][0], moves[moves.length - 1][1]);
+
+     while (true){
+        nextStep = allowedPlace(start);
+        $('.head').appendTo('#' + nextStep.x + '_' + nextStep.y);
+        console.log(document.querySelector('.head').parentElement);
+        moves.push([nextStep.x, nextStep.y]);
+         if (nextStep.x < start.x) $('.head').removeClass('turnUp').removeClass('turnDown').addClass('flipLeft');
+         else if (nextStep.y < start.y) $('.head').removeClass('flipLeft').removeClass('turnDown').addClass('turnUp');
+         else if (nextStep.y > start.y) $('.head').removeClass('flipLeft').removeClass('flipLeft').addClass('turnDown');
+         else $('.head').removeClass('flipLeft').removeClass('turnUp').removeClass('turnDown');
+         if (snakeBody.length > 0){
+             for (let i = 0; i < snakeBody.length; i++) {
+                 let currentStep = moves.length - (i + 1);
+                 snakeBody[i][0] = moves[currentStep][0];
+                 snakeBody[i][1] = moves[currentStep][1];
+                 $('#' + (i + 1)).appendTo('#' + snakeBody[i][0] + '_' + snakeBody[i][1]);
+             }
+         }
+         start = nextStep;
+         currentHead = nextStep;
+
+         if (!bfs(start, finish, stone)[0].equals(new Node(-1, -1))) {
+             nextStep = bfs(start, finish, stone)[0];
+             break;
+         }
+     }
+}
+
+
+//***************************************************************************************************
+
+
+
             let closed = snakeBody.some(function (element) {
                 return nextStep.x === element[0] && nextStep.y === element[1];
             });
@@ -121,10 +165,15 @@ function move(start, finish, stone) {
 
 
             $('.head').appendTo('#' + nextStep.x + '_' + nextStep.y);
-            if (snakeBody.length > 0){
+            if (nextStep.x < start.x) $('.head').removeClass('turnUp').removeClass('turnDown').addClass('flipLeft');
+            else if (nextStep.y < start.y) $('.head').removeClass('flipLeft').removeClass('turnDown').addClass('turnUp');
+            else if (nextStep.y > start.y) $('.head').removeClass('flipLeft').removeClass('flipLeft').addClass('turnDown');
+            else $('.head').removeClass('flipLeft').removeClass('turnUp').removeClass('turnDown');
+            if (snakeBody.length > 0 && !stopBody){
                 for (let i = 0; i < snakeBody.length; i++) {
-                    snakeBody[i][0] = moves[moves.length - (i + 1)][0];
-                    snakeBody[i][1] = moves[moves.length - (i + 1)][1];
+                    let currentStep = moves.length - (i + 1);
+                    snakeBody[i][0] = moves[currentStep][0];
+                    snakeBody[i][1] = moves[currentStep][1];
                     $('#' + (i + 1)).appendTo('#' + snakeBody[i][0] + '_' + snakeBody[i][1]);
                 }
             }
@@ -132,8 +181,9 @@ function move(start, finish, stone) {
             currentHead = nextStep;
             if (start.equals(finish)) {
                 $('.apple').remove();
-                $('.stone').remove();
+                // $('.stone').remove();
                 clearInterval(interval);
+
                 let bodyX = moves[moves.length - snakeLength][0];
                 let bodyY = moves[moves.length - snakeLength][1];
 
@@ -143,17 +193,42 @@ function move(start, finish, stone) {
 
                 main(start);
             }
-     }, 200);
-
-}
-function restrictedPlace(x, y, start) {
-    return snakeBody.some(function (element) {
-        return element[0] === x && element[1] === y;
-    }) || (start.x === x && start.y === y);
+     }, 100);
 }
 
+function allowedPlace(start) {
+    let node;
+    if (start.x < 20 && !restrictedLocked(start.x + 1, start.y, start)) node = new Node(start.x + 1, start.y);
+    else if (start.x > 1 && !restrictedLocked(start.x - 1, start.y, start)) node = new Node(start.x - 1, start.y);
+    else if (start.y < 20 && !restrictedLocked(start.x, start.y + 1, start)) node = new Node(start.x, start.y + 1);
+    else if (start.y > 1 && !restrictedLocked(start.x, start.y - 1, start))node = new Node(start.x, start.y - 1);
+    else node = -1;
+    return node;
+}
+
+
+// function defineDirection(moves, currentStep) {
+//     if (moves[currentStep - 1][0] === moves[currentStep][0] && moves[currentStep - 1][1] < moves[currentStep][1]) return "down";
+//     if (moves[currentStep - 1][0] === moves[currentStep][0] && moves[currentStep - 1][1] > moves[currentStep][1]) return "up";
+//     if (moves[currentStep - 1][0] < moves[currentStep][0] && moves[currentStep - 1][1] === moves[currentStep][1]) return "right";
+//     if (moves[currentStep - 1][0] > moves[currentStep][0] && moves[currentStep - 1][1] === moves[currentStep][1]) return "left";
+// }
+let stoneSet = new Set();
+let stoneArray;
 function main(start) {
-    if (start === undefined) start = currentHead;
+    if (start === undefined) {
+        start = currentHead;
+        while (true) {
+            let stoneX = Math.floor(Math.random()*20) + 1;
+            let stoneY = Math.floor(Math.random()*20) + 1;
+            if (stoneX !== start.x && stoneY !== start.y) {
+                $('<div>').addClass('stone').appendTo($('#' + stoneX + '_' + stoneY));
+                stoneSet.add(new Node(stoneX, stoneY));
+            }
+            if (stoneSet.size === 1) break;
+        }
+    }
+    stoneArray = Array.from(stoneSet);
     let appleX;
     let appleY;
     while(true) {
@@ -162,22 +237,34 @@ function main(start) {
         if (!restrictedPlace(appleX, appleY, start)) break;
     }
     $('<div>').addClass('apple').appendTo($('#' + appleX + '_' + appleY));
-    let stoneSet = new Set();
-    while (true) {
-        let stoneX = Math.floor(Math.random()*20) + 1;
-        let stoneY = Math.floor(Math.random()*20) + 1;
-        if (stoneX !== appleX && stoneY !== appleY && !restrictedPlace(stoneX, stoneY, start)) {
-            $('<div>').addClass('stone').appendTo($('#' + stoneX + '_' + stoneY));
-            stoneSet.add(new Node(stoneX, stoneY));
-        }
-        if (stoneSet.size === 3) break;
-    }
-    move(currentHead, new Node(appleX, appleY), Array.from(stoneSet));
+
+    move(currentHead, new Node(appleX, appleY), stoneArray);
 }
+
+
+function restrictedPlace(x, y, start) {
+    return stoneArray.some(function (element) {
+        return element.x === x && element.y === y;
+    }) || snakeBody.some(function (element) {
+        return element[0] === x && element[1] === y;
+    }) || (start.x === x && start.y === y);
+}
+
+function restrictedLocked(x, y, start) {
+    return stoneArray.some(function (element) {
+        return element.x === x && element.y === y;
+    }) || snakeBody.some(function (element) {
+        return element[0] === x && element[1] === y;
+    });
+}
+
+
 $('.stop').on('click', function () {
     clearInterval(interval);
 });
 
+
 main();
+
 
 

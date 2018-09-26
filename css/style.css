@@ -26,27 +26,30 @@ html, body{
     align-items: center;
 }
 .head{
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background-color: lightskyblue;
+    width: 30px;
+    height: 100%;
+    background-size: contain;
+    background: url("../img/snake-head.svg") center center no-repeat;
 }
 .snake{
-    width: 25px;
-    height: 25px;
-    background-color: lightskyblue;
+    width: 20px;
+    height: 20px;
+    background-color: #32127A;
+    border-radius: 20%;
+    /*position: absolute;*/
+    /*z-index: 100;*/
 }
 .apple{
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background-color: #008000;
+    width: 26px;
+    height: 30px;
+    background-size: contain;
+    background: url("../img/apple.svg") center center no-repeat;
 }
 .stone{
-    width: 25px;
+    width: 30px;
     height: 25px;
-    border-radius: 50%;
-    background-color: #ff0000;
+    background-size: contain;
+    background: url("../img/stones.svg") center center no-repeat;
 }
 .stop{
     width: 100px;
@@ -104,4 +107,13 @@ html, body{
 }
 .line:hover{
     color: #fff;
+}
+.flipLeft{
+    transform: scaleX(-1);
+}
+.turnUp{
+    transform: rotate(-90deg);
+}
+.turnDown{
+    transform: rotate(90deg);
 }
