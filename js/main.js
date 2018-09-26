@@ -119,7 +119,7 @@ if (nextStep.equals(new Node(-1, -1))){
     moves.splice(-1, 1);
     start = new Node(moves[moves.length - 1][0], moves[moves.length - 1][1]);
 
-     while (true){
+     while (allowedPlace(start)){
         nextStep = allowedPlace(start);
         $('.head').appendTo('#' + nextStep.x + '_' + nextStep.y);
         console.log(document.querySelector('.head').parentElement);
