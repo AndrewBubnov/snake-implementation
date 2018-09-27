@@ -31,13 +31,14 @@ html, body{
     background-size: contain;
     background: url("../img/snake-head.svg") center center no-repeat;
 }
+.green{
+    filter: hue-rotate(220deg) saturate(5) brightness(110%);
+}
 .snake{
     width: 20px;
     height: 20px;
     background-color: #32127A;
     border-radius: 20%;
-    /*position: absolute;*/
-    /*z-index: 100;*/
 }
 .apple{
     width: 26px;
@@ -51,29 +52,29 @@ html, body{
     background-size: contain;
     background: url("../img/stones.svg") center center no-repeat;
 }
-.stop{
+
+.button{
     width: 100px;
     height: 30px;
     border: 2px solid #FFBC70;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 50px;
     cursor: pointer;
     position: relative;
     overflow: hidden;
     border-radius: 3px;
 }
-.stop:hover{
+.button:hover{
     color: #fff;
 }
-.stop:hover:before {
+.button:hover:before {
     left: 50%;
 }
-.stop:hover:after {
+.button:hover:after {
     left: 0;
 }
-.stop:before{
+.button:before{
     content: "";
     background-color: #FFBC70;
     width: 50%;
@@ -83,7 +84,7 @@ html, body{
     z-index: 0;
     transition: left .2s ease-out;
 }
-.stop:after{
+.button:after{
     content: "";
     background-color: #FFBC70;
     width: 50%;
@@ -116,4 +117,21 @@ html, body{
 }
 .turnDown{
     transform: rotate(90deg);
+}
+.button-container{
+    width: 400px;
+    height: 30px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 50px;
+}
+.score{
+    width: 80px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #FFBC70;
+    font-size: 24px;
+    font-family: sans-serif;
 }

@@ -115,36 +115,15 @@ function move(start, finish, stone) {
 
 //**********************************************************************************************
 
-if (nextStep.equals(new Node(-1, -1))){
-    moves.splice(-1, 1);
-    start = new Node(moves[moves.length - 1][0], moves[moves.length - 1][1]);
-
-     while (allowedPlace(start)){
-        nextStep = allowedPlace(start);
-        $('.head').appendTo('#' + nextStep.x + '_' + nextStep.y);
-        console.log(document.querySelector('.head').parentElement);
-        moves.push([nextStep.x, nextStep.y]);
-         if (nextStep.x < start.x) $('.head').removeClass('turnUp').removeClass('turnDown').addClass('flipLeft');
-         else if (nextStep.y < start.y) $('.head').removeClass('flipLeft').removeClass('turnDown').addClass('turnUp');
-         else if (nextStep.y > start.y) $('.head').removeClass('flipLeft').removeClass('flipLeft').addClass('turnDown');
-         else $('.head').removeClass('flipLeft').removeClass('turnUp').removeClass('turnDown');
-         if (snakeBody.length > 0){
-             for (let i = 0; i < snakeBody.length; i++) {
-                 let currentStep = moves.length - (i + 1);
-                 snakeBody[i][0] = moves[currentStep][0];
-                 snakeBody[i][1] = moves[currentStep][1];
-                 $('#' + (i + 1)).appendTo('#' + snakeBody[i][0] + '_' + snakeBody[i][1]);
-             }
-         }
-         start = nextStep;
-         currentHead = nextStep;
-
-         if (!bfs(start, finish, stone)[0].equals(new Node(-1, -1))) {
-             nextStep = bfs(start, finish, stone)[0];
-             break;
-         }
-     }
-}
+// if (nextStep.equals(new Node(-1, -1))){
+//     moves.pop();
+//     start = new Node(moves[moves.length - 1][0], moves[moves.length - 1][1]);
+//         nextStep = allowedPlace(start);
+//         moves.push([nextStep.x, nextStep.y]);
+//         stopBody = false;
+//          start = nextStep;
+//          currentHead = nextStep;
+// }
 
 
 //***************************************************************************************************
@@ -188,6 +167,13 @@ if (nextStep.equals(new Node(-1, -1))){
                 let bodyY = moves[moves.length - snakeLength][1];
 
                 $('<div>').addClass('snake').attr('id', snakeLength).appendTo($('#' + bodyX + '_' + bodyY));
+                $('.head').addClass('green');
+                $('.snake').addClass('green');
+                setTimeout(function () {
+                    $('.head').removeClass('green');
+                    $('.snake').removeClass('green');
+                }, 200);
+                $('.score').text(snakeLength);
                 snakeLength++;
                 snakeBody.push([bodyX, bodyY]);
 
@@ -198,11 +184,11 @@ if (nextStep.equals(new Node(-1, -1))){
 
 function allowedPlace(start) {
     let node;
-    if (start.x < 20 && !restrictedLocked(start.x + 1, start.y, start)) node = new Node(start.x + 1, start.y);
-    else if (start.x > 1 && !restrictedLocked(start.x - 1, start.y, start)) node = new Node(start.x - 1, start.y);
-    else if (start.y < 20 && !restrictedLocked(start.x, start.y + 1, start)) node = new Node(start.x, start.y + 1);
-    else if (start.y > 1 && !restrictedLocked(start.x, start.y - 1, start))node = new Node(start.x, start.y - 1);
-    else node = -1;
+    if (start.x < 20 && !restrictedLocked(start.x + 1, start.y)) node = new Node(start.x + 1, start.y);
+    else if (start.x > 1 && !restrictedLocked(start.x - 1, start.y)) node = new Node(start.x - 1, start.y);
+    else if (start.y < 20 && !restrictedLocked(start.x, start.y + 1)) node = new Node(start.x, start.y + 1);
+    else if (start.y > 1 && !restrictedLocked(start.x, start.y - 1))node = new Node(start.x, start.y - 1);
+    else node = start;
     return node;
 }
 
@@ -250,7 +236,7 @@ function restrictedPlace(x, y, start) {
     }) || (start.x === x && start.y === y);
 }
 
-function restrictedLocked(x, y, start) {
+function restrictedLocked(x, y) {
     return stoneArray.some(function (element) {
         return element.x === x && element.y === y;
     }) || snakeBody.some(function (element) {
@@ -259,12 +245,18 @@ function restrictedLocked(x, y, start) {
 }
 
 
-$('.stop').on('click', function () {
+$('.button-container').on('click', function (e) {
+    console.log(e.target.id);
+    if (e.target.id === 'start'){
+    main();
+    }
+    if (e.target.id === 'stop'){
     clearInterval(interval);
+    }
 });
 
 
-main();
+
 
 
 
