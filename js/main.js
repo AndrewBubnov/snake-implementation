@@ -1,21 +1,78 @@
 
+// function Node(x,y) {
+//     this.x = x;
+//     this.y = y;
+//
+//     this.getOutNodes = function() {
+//        let newX;
+//        let newY;
+//        let nodesArray = [];
+//         newX = this.x - 1;
+//         if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+//         newX = this.x + 1;
+//         if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+//         newY = this.y - 1;
+//         if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+//         newY = this.y + 1;
+//         if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+//         return nodesArray;
+//     };
+//     this.equals = function (object) {
+//         return (this.x === object.x && this.y === object.y);
+//     }
+// }
 function Node(x,y) {
     this.x = x;
     this.y = y;
 
-    this.getOutNodes = function() {
+    this.getOutNodes = function(preference) {
        let newX;
        let newY;
        let nodesArray = [];
-        newX = this.x - 1;
-        if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
-        newX = this.x + 1;
-        if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
-        newY = this.y - 1;
-        if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
-        newY = this.y + 1;
-        if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
-        return nodesArray;
+       if (preference === "x-y-") {
+           newX = this.x - 1;
+           if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+           newY = this.y - 1;
+           if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+           newX = this.x + 1;
+           if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+           newY = this.y + 1;
+           if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+           return nodesArray;
+       }
+       else if (preference === "x-y+") {
+           newX = this.x - 1;
+           if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+           newY = this.y + 1;
+           if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+           newY = this.y - 1;
+           if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+           newX = this.x + 1;
+           if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+           return nodesArray;
+       }
+       else if (preference === "x+y-") {
+           newY = this.y - 1;
+           if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+           newX = this.x + 1;
+           if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+           newX = this.x - 1;
+           if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+           newY = this.y + 1;
+           if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+           return nodesArray;
+       }
+       else {
+           newX = this.x + 1;
+           if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+           newY = this.y + 1;
+           if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+           newY = this.y - 1;
+           if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+           newX = this.x - 1;
+           if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
+           return nodesArray;
+       }
     };
     this.equals = function (object) {
         return (this.x === object.x && this.y === object.y);
@@ -25,7 +82,14 @@ Node.prototype.toString = function () {
         return this.x + " ; " + this.y;
     };
 
-
+function getPreference(start, finish) {
+    let preference;
+    if (finish.x >= start.x &&  finish.y >= start.y) preference = "x+y+";
+    else if (finish.x < start.x &&  finish.y >= start.y) preference = "x-y+";
+    else if (finish.x >= start.x &&  finish.y < start.y) preference = "x+y-";
+    else preference = "x-y-";
+    return preference;
+}
 function isAllowed(n) {
    return (!(n < 1 || n > 20));
 }
@@ -64,7 +128,7 @@ function bfs(start,finish, stones) {
         if (current.equals(finish)){
             break;
         } else {
-            for (let node of current.getOutNodes()){
+            for (let node of current.getOutNodes(getPreference(start, finish))){
                 if (!hasKey(visited, node)){
                     queue.push(node);
                     visited.add(node);
@@ -73,11 +137,11 @@ function bfs(start,finish, stones) {
             }
         }
     }
-    if (!current.equals(finish)) {
-        stopBody = true;
-        steps.push(new Node(-1, -1));
-        return steps;
-    }
+    // if (!current.equals(finish)) {
+    //     stopBody = true;
+    //     steps.push(new Node(-1, -1));
+    //     return steps;
+    // }
     let node = finish;
     while(!node.equals(start)){
         steps.push(node);
@@ -115,13 +179,13 @@ function move(start, finish, stone) {
 
 //**********************************************************************************************
 
-if (nextStep.equals(new Node(-1, -1))){
-    moves.pop();
-    start = new Node(moves[moves.length - 1][0], moves[moves.length - 1][1]);
-        nextStep = allowedPlace(start);
-        moves.push([nextStep.x, nextStep.y]);
-        stopBody = false;
-}
+// if (nextStep.equals(new Node(-1, -1))){
+//     moves.pop();
+//     start = new Node(moves[moves.length - 1][0], moves[moves.length - 1][1]);
+//         nextStep = allowedPlace(start);
+//         moves.push([nextStep.x, nextStep.y]);
+//         stopBody = false;
+// }
 
 
 //***************************************************************************************************
