@@ -115,15 +115,13 @@ function move(start, finish, stone) {
 
 //**********************************************************************************************
 
-// if (nextStep.equals(new Node(-1, -1))){
-//     moves.pop();
-//     start = new Node(moves[moves.length - 1][0], moves[moves.length - 1][1]);
-//         nextStep = allowedPlace(start);
-//         moves.push([nextStep.x, nextStep.y]);
-//         stopBody = false;
-//          start = nextStep;
-//          currentHead = nextStep;
-// }
+if (nextStep.equals(new Node(-1, -1))){
+    moves.pop();
+    start = new Node(moves[moves.length - 1][0], moves[moves.length - 1][1]);
+        nextStep = allowedPlace(start);
+        moves.push([nextStep.x, nextStep.y]);
+        stopBody = false;
+}
 
 
 //***************************************************************************************************
