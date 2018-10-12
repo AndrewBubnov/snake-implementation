@@ -138,6 +138,7 @@ let moves = [];
 let snakeBody = [];
 let interval;
 let snakeLength = 1;
+let counter = 0;
 function indexOfElement(array, value) {
     for (let i = 0; i < array.length; i++) {
         if(array[i].equals(value)) return i;
@@ -171,7 +172,8 @@ function move(start, finish, stone) {
             if (snakeBody.length > 0 && steps[0].x === - 1 && steps[0].y === - 1){
 
                 console.log("can't reach apple, going after tail");
-                finish = new Node(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y);
+                // finish = new Node(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y);
+                finish = tail[tail.length - snakeLength - 1];
                 let array = snakeBody.slice(0, snakeBody.length - 2);
                 array.push(stone[0]);
                 steps = bfs(start, finish, array);
@@ -182,10 +184,14 @@ function move(start, finish, stone) {
                 if (tempSearch[0].x === -1 && tempSearch[0].y === -1){
                     console.log("can't reach tail after reaching apple, going after tail");
 
-                    finish = new Node(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y);
+                    // finish = new Node(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y);
+                    finish = tail[tail.length - snakeLength - 1];
                     let array = snakeBody.slice();
                     array.splice(-2, 2).push(stone[0]);
                     steps = bfs(start, finish, array);
+                    console.log('start = ' + start);
+                    console.log('finish = ' + finish);
+
 
                 } else {
                     console.log("plain search for the apple");
@@ -194,10 +200,7 @@ function move(start, finish, stone) {
             }
         }
 
-
         let nextStep = steps[0];
-
-
 
         $('.head').appendTo('#' + nextStep.x + '_' + nextStep.y);
         if (nextStep.x < start.x) $('.head').removeClass('turnUp').removeClass('turnDown').addClass('flipLeft');
@@ -214,68 +217,46 @@ function move(start, finish, stone) {
         }
         start = nextStep;
         currentHead = nextStep;
-        if (start.equals(finish)) {
 
-            if ($('#' + finish.x + '_' + finish.y).children().first().hasClass('apple')){
-            $('.apple').remove();
-
-            clearInterval(interval);
-
-            let bodyX = moves[moves.length - snakeLength].x;
-            let bodyY = moves[moves.length - snakeLength].y;
-
-            $('<div>').addClass('snake').attr('id', snakeLength).appendTo($('#' + bodyX + '_' + bodyY));
-
-
-
-            $('.head').addClass('green');
-            $('.snake').addClass('green');
-            setTimeout(function () {
-                $('.head').removeClass('green');
-                $('.snake').removeClass('green');
-            }, 200);
-            $('.score').text(snakeLength);
-            snakeLength++;
-            snakeBody.push(new Node(bodyX, bodyY));
-
-            main(start);
-            } else {
-
+            let currentStart = $('#' + start.x + '_' + start.y);
+            if (start.equals(finish) || currentStart.children().first().hasClass('apple')) {
                 clearInterval(interval);
 
                 let bodyX = moves[moves.length - snakeLength].x;
                 let bodyY = moves[moves.length - snakeLength].y;
-                console.log('line 307: finish(start) = ' + finish);
-                console.log('line 307: apple = ' + apple);
-                console.log('line 307: BFS = ' + bfs(finish, apple, stone));
-
-                if (bfs(finish, apple, stone)[0] !== -1){
-                    move(finish, apple, stone);
+                if (currentStart.children().first().hasClass('apple')){
+                    $('.apple').remove();
+                    $('<div>').addClass('snake').attr('id', snakeLength).appendTo($('#' + bodyX + '_' + bodyY));
+                    snakeBody.push(new Node(bodyX, bodyY));
+                    $('.head').addClass('green');
+                    $('.snake').addClass('green');
+                    setTimeout(function () {
+                        $('.head').removeClass('green');
+                        $('.snake').removeClass('green');
+                    }, 200);
+                    $('.score').text(++counter);
+                    snakeLength++;
+//********************************************************************************************************************
+                    if (snakeLength > 80){
+                        for (let i = snakeBody.length - 1; i >= 75; i--) {
+                            $('#' + snakeBody[i].x + '_' + snakeBody[i].y).children().first().remove();
+                        }
+                        snakeBody.splice(-5, 5);
+                        snakeLength = snakeLength - 5;
+                    }
+//********************************************************************************************************************
+                    main(start);
                 } else {
-                    move(finish, new Node(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y), stone);
+                    if (bfs(finish, apple, stone)[0] !== -1){
+                        move(finish, apple, stone);
+                    } else {
+                        move(finish, new Node(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y), stone);
+                    }
                 }
             }
-        }
     }, 100);
 }
 
-// function allowedPlace(start) {
-//     let node;
-//     if (start.x < 20 && !restrictedLocked(start.x + 1, start.y)) node = new Node(start.x + 1, start.y);
-//     else if (start.x > 1 && !restrictedLocked(start.x - 1, start.y)) node = new Node(start.x - 1, start.y);
-//     else if (start.y < 20 && !restrictedLocked(start.x, start.y + 1)) node = new Node(start.x, start.y + 1);
-//     else if (start.y > 1 && !restrictedLocked(start.x, start.y - 1))node = new Node(start.x, start.y - 1);
-//     else node = start;
-//     return node;
-// }
-
-
-// function defineDirection(moves, currentStep) {
-//     if (moves[currentStep - 1][0] === moves[currentStep][0] && moves[currentStep - 1][1] < moves[currentStep][1]) return "down";
-//     if (moves[currentStep - 1][0] === moves[currentStep][0] && moves[currentStep - 1][1] > moves[currentStep][1]) return "up";
-//     if (moves[currentStep - 1][0] < moves[currentStep][0] && moves[currentStep - 1][1] === moves[currentStep][1]) return "right";
-//     if (moves[currentStep - 1][0] > moves[currentStep][0] && moves[currentStep - 1][1] === moves[currentStep][1]) return "left";
-// }
 let stoneSet = new Set();
 let stoneArray;
 function main(start) {
@@ -302,9 +283,8 @@ function main(start) {
     }
     $('<div>').addClass('apple').appendTo($('#' + appleX + '_' + appleY));
     apple = new Node(appleX, appleY);
-    move(currentHead, new Node(appleX, appleY), stoneArray);
+    move(start, new Node(appleX, appleY), stoneArray);
 }
-
 
 function restrictedPlace(x, y, start) {
     return stoneArray.some(function (element) {
@@ -313,14 +293,6 @@ function restrictedPlace(x, y, start) {
         return element[0] === x && element[1] === y;
     }) || (start.x === x && start.y === y);
 }
-
-// function restrictedLocked(x, y) {
-//     return stoneArray.some(function (element) {
-//         return element.x === x && element.y === y;
-//     }) || snakeBody.some(function (element) {
-//         return element[0] === x && element[1] === y;
-//     });
-// }
 
 
 $('.button-container').on('click', function (e) {
@@ -331,3 +303,4 @@ $('.button-container').on('click', function (e) {
         clearInterval(interval);
     }
 });
+
