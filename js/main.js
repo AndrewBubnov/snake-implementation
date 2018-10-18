@@ -6,51 +6,30 @@ function Node(x,y) {
         let newX;
         let newY;
         let nodesArray = [];
-        if (preference === "x-y-") {
-            newX = this.x - 1;
-            if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
-            newY = this.y - 1;
-            if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+        if (preference) {
             newX = this.x + 1;
             if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
             newY = this.y + 1;
             if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
-            return nodesArray;
-        }
-        else if (preference === "x-y+") {
             newX = this.x - 1;
             if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
-            newY = this.y + 1;
-            if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
             newY = this.y - 1;
-            if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
-            newX = this.x + 1;
-            if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
-            return nodesArray;
-        }
-        else if (preference === "x+y-") {
-            newY = this.y - 1;
-            if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
-            newX = this.x + 1;
-            if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
-            newX = this.x - 1;
-            if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
-            newY = this.y + 1;
             if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
             return nodesArray;
         }
         else {
-            newX = this.x + 1;
+            newX = this.x - 1;
             if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
             newY = this.y + 1;
             if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
+            newX = this.x + 1;
+            if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
             newY = this.y - 1;
             if (isAllowed(newY)) nodesArray.push(new Node(this.x, newY));
-            newX = this.x - 1;
-            if (isAllowed(newX)) nodesArray.push(new Node(newX, this.y));
             return nodesArray;
         }
     };
+
     this.equals = function (object) {
         return (this.x === object.x && this.y === object.y);
     }
@@ -59,14 +38,6 @@ Node.prototype.toString = function () {
     return this.x + " : " + this.y + " ";
 };
 
-function getPreference(start, finish) {
-    let preference;
-    if (finish.x >= start.x &&  finish.y >= start.y) preference = "x+y+";
-    else if (finish.x < start.x &&  finish.y >= start.y) preference = "x-y+";
-    else if (finish.x >= start.x &&  finish.y < start.y) preference = "x+y-";
-    else preference = "x-y-";
-    return preference;
-}
 function isAllowed(n) {
     return (!(n < 1 || n > 20));
 }
@@ -105,7 +76,7 @@ function bfs(start,finish, stones) {
         if (current.equals(finish)){
             break;
         } else {
-            for (let node of current.getOutNodes(getPreference(start, finish))){
+            for (let node of current.getOutNodes(variables.preference)){
                 if (!hasKey(visited, node)){
                     queue.push(node);
                     visited.add(node);
@@ -132,71 +103,51 @@ for (let i = 0; i < 20; i++) {
     }
 }
 
-let currentHead = new Node(5,5);
-let headExists = false;
-let moves = [];
-let snakeBody = [];
-let interval;
-let snakeLength = 1;
-let counter = 0;
-function indexOfElement(array, value) {
-    for (let i = 0; i < array.length; i++) {
-        if(array[i].equals(value)) return i;
-    }
-}
 
-let apple;
 function move(start, finish, stone) {
-    if (!headExists) {
+    if (!variables.headExists) {
         $('<div>').addClass('head').appendTo($('#' + start.x + '_' + start.y));
-        headExists = true;
+        variables.headExists = true;
     }
 
-        interval = setInterval(function () {
-
+    let interval = setInterval(function () {
+        variables.setSnakeInterval(interval);
+        let moves = variables.getMoves();
+        let snakeBody = variables.getSnakeBody();
+        let snakeLength = variables.getSnakeLength();
         moves.push(start);
         if (moves.length > 200) {
             moves = moves.slice(100, 202);
         }
+        variables.setMoves(moves);
         let steps = bfs(start, finish, stone);
 
+        if (steps[0].x !== -1) moves.concat(steps[0]);
+        else start = moves[moves.length - 1];
 
-        let tail = moves.concat(steps[0]);
-
-        let tempStone = tail.slice(tail.length - snakeLength + 1);
+        let tempStone = moves.slice(moves.length - snakeLength + 1);
         tempStone.push(stone[0]);
 
         let tempSearch;
 
         if (snakeLength > 1){
-            if (snakeBody.length > 0 && steps[0].x === - 1 && steps[0].y === - 1){
-
+            if (snakeBody.length > 0 && steps[0].x === - 1){
                 console.log("can't reach apple, going after tail");
-                // finish = new Node(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y);
-                finish = tail[tail.length - snakeLength - 1];
-                let array = snakeBody.slice(0, snakeBody.length - 2);
-                array.push(stone[0]);
-                steps = bfs(start, finish, array);
+                variables.preference = !variables.preference;
+                steps = stepsAfterTail(start, moves, snakeBody, snakeLength, stone[0]);
 
             } else {
-                tempSearch = bfs(finish, tail[tail.length - snakeLength], tempStone);
+                tempSearch = bfs(finish, moves[moves.length - snakeLength], tempStone);
 
                 if (tempSearch[0].x === -1 && tempSearch[0].y === -1){
                     console.log("can't reach tail after reaching apple, going after tail");
+                    variables.preference = !variables.preference;
+                    steps = stepsAfterTail(start, moves, snakeBody, snakeLength, stone[0]);
 
-                    // finish = new Node(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y);
-                    finish = tail[tail.length - snakeLength - 1];
-                    let array = snakeBody.slice();
-                    array.splice(-2, 2).push(stone[0]);
-                    steps = bfs(start, finish, array);
-                    console.log('start = ' + start);
-                    console.log('finish = ' + finish);
-
-
-                } else {
+                }
+                else {
                     console.log("plain search for the apple");
                 }
-
             }
         }
 
@@ -216,52 +167,123 @@ function move(start, finish, stone) {
             }
         }
         start = nextStep;
-        currentHead = nextStep;
+        variables.setCurrentHead(nextStep);
 
-            let currentStart = $('#' + start.x + '_' + start.y);
-            if (start.equals(finish) || currentStart.children().first().hasClass('apple')) {
-                clearInterval(interval);
+        let currentStart = $('#' + start.x + '_' + start.y);
+        if (start.equals(finish) || currentStart.children().first().hasClass('apple')) {
+            clearInterval(interval);
 
-                let bodyX = moves[moves.length - snakeLength].x;
-                let bodyY = moves[moves.length - snakeLength].y;
-                if (currentStart.children().first().hasClass('apple')){
-                    $('.apple').remove();
-                    $('<div>').addClass('snake').attr('id', snakeLength).appendTo($('#' + bodyX + '_' + bodyY));
-                    snakeBody.push(new Node(bodyX, bodyY));
-                    $('.head').addClass('green');
-                    $('.snake').addClass('green');
-                    setTimeout(function () {
-                        $('.head').removeClass('green');
-                        $('.snake').removeClass('green');
-                    }, 200);
-                    $('.score').text(++counter);
-                    snakeLength++;
-//********************************************************************************************************************
-                    if (snakeLength > 80){
-                        for (let i = snakeBody.length - 1; i >= 75; i--) {
-                            $('#' + snakeBody[i].x + '_' + snakeBody[i].y).children().first().remove();
-                        }
-                        snakeBody.splice(-5, 5);
-                        snakeLength = snakeLength - 5;
+            let bodyX = moves[moves.length - snakeLength].x;
+            let bodyY = moves[moves.length - snakeLength].y;
+            if (currentStart.children().first().hasClass('apple')){
+                $('.apple').remove();
+                $('<div>').addClass('snake').attr('id', snakeLength).appendTo($('#' + bodyX + '_' + bodyY));
+                snakeBody.push(new Node(bodyX, bodyY));
+
+                $('.head').addClass('green');
+                $('.snake').addClass('green');
+                setTimeout(function () {
+                    $('.head').removeClass('green');
+                    $('.snake').removeClass('green');
+                }, 200);
+                $('.score').text(++variables.counter);
+                snakeLength++;
+                variables.setSnakeLength(snakeLength);
+
+                if (snakeLength > 80){
+                    for (let i = snakeBody.length - 1; i >= 75; i--) {
+                        $('#' + snakeBody[i].x + '_' + snakeBody[i].y).children().first().remove();
                     }
-//********************************************************************************************************************
-                    main(start);
-                } else {
-                    if (bfs(finish, apple, stone)[0] !== -1){
-                        move(finish, apple, stone);
-                    } else {
-                        move(finish, new Node(snakeBody[snakeBody.length - 1].x, snakeBody[snakeBody.length - 1].y), stone);
-                    }
+                    snakeBody.splice(-5, 5);
+                    variables.setSnakeLength(snakeLength - 5);
                 }
+                variables.setSnakeBody(snakeBody);
+                main(start);
+            } else {
+                move(finish, variables.getApple(), stone);
             }
+        }
     }, 100);
 }
 
-let stoneSet = new Set();
-let stoneArray;
+function stepsAfterTail(start, moves, snakeBody, snakeLength, stone) {
+    let finish = moves[moves.length - snakeLength];
+    let array = snakeBody.slice(0, snakeBody.length - 1);
+    array.push(stone);
+    return bfs(start, finish, array);
+}
+
+
+
+let Variables = function () {
+    let stoneSet = new Set();
+    let stoneArray;
+    let currentHead = new Node(5,5);
+    let apple;
+    let moves = [];
+    let snakeBody = [];
+    let interval;
+    let snakeLength = 1;
+    this.counter = 0;
+    this.preference = true;
+    this.getStoneSet = function () {
+        return stoneSet;
+    }
+    this.setStoneSet = function (_stoneSet) {
+        stoneSet = _stoneSet;
+    }
+    this.getStoneArray = function () {
+        return stoneArray;
+    }
+    this.setStoneArray = function (_stoneArray) {
+        stoneArray = _stoneArray;
+    }
+    this.getCurrentHead = function () {
+        return currentHead;
+    }
+    this.setCurrentHead = function (_currentHead) {
+        currentHead = _currentHead;
+    }
+    this.getApple = function () {
+        return apple;
+    }
+    this.setApple = function (_apple) {
+        apple = _apple;
+    }
+    this.getMoves = function () {
+        return moves;
+    }
+    this.setMoves = function (_moves) {
+        moves = _moves;
+    }
+    this.getSnakeBody = function () {
+        return snakeBody;
+    }
+    this.setSnakeBody = function (_snakeBody) {
+        snakeBody = _snakeBody;
+    }
+    this.getSnakeInterval = function () {
+        return interval;
+    }
+    this.setSnakeInterval = function (_interval) {
+        interval = _interval;
+    }
+    this.getSnakeLength = function () {
+        return snakeLength;
+    }
+    this.setSnakeLength = function (_snakeLength) {
+        snakeLength = _snakeLength;
+    }
+}
+
+let variables = new Variables();
+
 function main(start) {
+    let stoneSet = variables.getStoneSet();
+    let stoneArray = variables.getStoneArray();
+
     if (start === undefined) {
-        start = currentHead;
+        start = variables.getCurrentHead();
         while (true) {
             let stoneX = Math.floor(Math.random()*20) + 1;
             let stoneY = Math.floor(Math.random()*20) + 1;
@@ -273,34 +295,39 @@ function main(start) {
         }
     }
     stoneArray = Array.from(stoneSet);
-    stoneArray = stoneArray.concat(snakeBody);
+    stoneArray = stoneArray.concat(variables.getSnakeBody());
+    variables.setStoneSet(stoneSet);
+    variables.setStoneArray(stoneArray);
     let appleX;
     let appleY;
     while(true) {
         appleX = Math.floor(Math.random() * 20) + 1;
         appleY = Math.floor(Math.random() * 20) + 1;
-        if (!restrictedPlace(appleX, appleY, start)) break;
+        if (!restrictedPlace(appleX, appleY, start, stoneArray)) break;
     }
     $('<div>').addClass('apple').appendTo($('#' + appleX + '_' + appleY));
-    apple = new Node(appleX, appleY);
+    variables.setApple(new Node(appleX, appleY));
     move(start, new Node(appleX, appleY), stoneArray);
 }
 
-function restrictedPlace(x, y, start) {
+function restrictedPlace(x, y, start,stoneArray) {
     return stoneArray.some(function (element) {
         return element.x === x && element.y === y;
-    }) || snakeBody.some(function (element) {
+    }) || variables.getSnakeBody().some(function (element) {
         return element[0] === x && element[1] === y;
-    }) || (start.x === x && start.y === y);
+    }) || (start.x === x && start.y === y) || !isAllowed(x) || !isAllowed(y);
 }
 
 
 $('.button-container').on('click', function (e) {
     if (e.target.id === 'start'){
-        main();
+        clearInterval(variables.getSnakeInterval());
+        location.reload();
+
     }
     if (e.target.id === 'stop'){
-        clearInterval(interval);
+        clearInterval(variables.getSnakeInterval());
     }
 });
 
+main();
